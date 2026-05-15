@@ -92,7 +92,7 @@ select, input { font-family: inherit; }
 .gas-code { width:100%; height:80px; font-size:9.5px; font-family:monospace; border:1px solid var(--g200); border-radius:6px; padding:6px; background:var(--g50); resize:vertical; margin-top:4px; }
 
 /* ── MATCH PICKER ── */
-.match-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; max-height:260px; overflow-y:auto; }
+.match-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; max-height:300px; overflow-y:auto; }
 .match-btn { background:var(--g50); border:1.5px solid var(--g200); border-radius:8px; padding:7px 9px; font-size:11.5px; text-align:left; line-height:1.35; transition:all .15s; color:var(--g700); }
 .match-btn:hover { border-color:var(--green); background:var(--green-bg); }
 .match-btn.active { border-color:var(--green); background:var(--green-bg); font-weight:600; }
@@ -239,6 +239,32 @@ select, input { font-family: inherit; }
 /* ── GS CARD HIGHLIGHT ── */
 #gs-card { transition: box-shadow .3s, border .3s; }
 #gs-card.no-url { border: 2px solid #fcd34d; box-shadow: 0 0 0 3px rgba(251,191,36,.15); }
+
+/* ── BẢNG XẾP HẠNG ── */
+.bxh-filter { display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap; }
+.bxh-filter .sel-w { flex:1; min-width:120px; }
+.bxh-table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; border-radius:10px; border:1.5px solid var(--g200); }
+.bxh-table { width:100%; border-collapse:collapse; font-size:12px; }
+.bxh-table thead tr { background:var(--green-dk); color:#fff; }
+.bxh-table thead th { padding:8px 6px; text-align:right; font-family:'Oswald',sans-serif; font-size:11.5px; font-weight:700; letter-spacing:.3px; white-space:nowrap; }
+.bxh-table thead th:first-child { text-align:center; width:36px; }
+.bxh-table thead th:nth-child(2) { text-align:left; }
+.bxh-table tbody tr { border-bottom:1px solid var(--g100); transition:background .15s; }
+.bxh-table tbody tr:last-child { border-bottom:none; }
+.bxh-table tbody tr:hover { background:var(--green-bg); }
+.bxh-table tbody tr.rank-1 { background:#fff9e6; }
+.bxh-table tbody tr.rank-1 td:first-child { color:#d97706; font-weight:800; }
+.bxh-table tbody tr.rank-2 td:first-child { color:#64748b; font-weight:700; }
+.bxh-table tbody tr.rank-3 td:first-child { color:#92400e; font-weight:700; }
+.bxh-table td { padding:8px 6px; text-align:right; color:var(--g700); white-space:nowrap; }
+.bxh-table td:first-child { text-align:center; font-size:18px; width:36px; padding-right:4px; }
+.bxh-table td:nth-child(2) { text-align:left; font-weight:600; color:var(--g900); white-space:normal; word-break:break-word; min-width:120px; }
+.bxh-table td.pts { font-family:'Oswald',sans-serif; font-size:14px; font-weight:700; color:var(--green-dk); }
+.bxh-table td.hso-pos { color:var(--green-dk); font-weight:700; }
+.bxh-table td.hso-neg { color:var(--red); font-weight:700; }
+.bxh-empty { text-align:center; padding:20px; color:var(--g400); font-size:12.5px; }
+.bxh-legend { display:flex; gap:10px; flex-wrap:wrap; margin-top:8px; font-size:10.5px; color:var(--g500); }
+.bxh-legend span { display:flex; align-items:center; gap:3px; }
 @media (max-width:420px) {
   .snum { font-size:68px; }
   .scoreboard { grid-template-columns:1fr 80px 1fr; gap:5px; }
@@ -504,6 +530,9 @@ select, input { font-family: inherit; }
   </div>
   <div class="card-body">
     <div class="history-list" id="history-list"><div class="empty-msg">Chưa có sự kiện</div></div>
+    <div class="match-bar" style="margin-top:8px">
+      <button class="sm-btn clr" onclick="clearEventLog()">🗑 Xóa nhật ký</button>
+    </div>
   </div>
 </div>
 
@@ -531,6 +560,56 @@ select, input { font-family: inherit; }
         </tr></thead>
         <tbody id="res-body"><tr><td colspan="7" class="empty-msg">Chưa có kết quả</td></tr></tbody>
       </table>
+    </div>
+  </div>
+</div>
+
+<!-- ── BẢNG XẾP HẠNG ── -->
+<div class="card">
+  <div class="card-hd" onclick="toggle(this)">
+    <div class="card-hd-left">🏅 Bảng xếp hạng <span class="badge" id="bxh-badge">0</span></div>
+    <span class="chevron">▾</span>
+  </div>
+  <div class="card-body">
+    <!-- Filter -->
+    <div class="bxh-filter">
+      <div class="sel-w">
+        <select class="sel" id="bxh-nd" onchange="renderBXH()" style="font-size:12px">
+          <option value="">-- Nội dung --</option>
+        </select>
+      </div>
+      <div class="sel-w">
+        <select class="sel" id="bxh-bang" onchange="renderBXH()" style="font-size:12px">
+          <option value="">-- Bảng --</option>
+        </select>
+      </div>
+      <button class="gsbtn save" onclick="renderBXH()" style="padding:7px 12px;font-size:12px;white-space:nowrap;border-radius:8px">🔄 Cập nhật</button>
+    </div>
+    <!-- Table -->
+    <div class="bxh-table-wrap">
+      <table class="bxh-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Đội</th>
+            <th>T</th>
+            <th>Đ</th>
+            <th>B</th>
+            <th>Hiệu số</th>
+            <th>Điểm</th>
+          </tr>
+        </thead>
+        <tbody id="bxh-body">
+          <tr><td colspan="7" class="bxh-empty">Chưa có kết quả để xếp hạng</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <!-- Legend -->
+    <div class="bxh-legend">
+      <span>T = Trận đã chấm</span>
+      <span>Đ = Thắng (1đ)</span>
+      <span>B = Thua (0đ)</span>
+      <span>Hiệu số = Điểm ghi – Điểm thủng</span>
     </div>
   </div>
 </div>
@@ -953,7 +1032,7 @@ function stopTimer() {
 //  ✏️  ĐỔI URL GAS: chỉ cần sửa dòng này
 //  Sau khi sửa → lưu file → mở lại app là có hiệu lực
 // ═══════════════════════════════════════════════════════
-const _EMBEDDED_GS_URL = 'https://script.google.com/macros/s/AKfycbz_9QJ7TXHax_vI_0MoN0eYxptt8Dl4VBNyQ0B1ti2cviSrIR7fPY-8Ja3oq7Jpf46YXA/exec';
+const _EMBEDDED_GS_URL = 'https://script.google.com/macros/s/AKfycby6LelbyuStLvdGdpfzB83qPTzLUNkd_f_Voyp_7MjgXS8yCN1LrMds2OgsOcCQoo6Usg/exec';
 
 // Ưu tiên: URL nhúng sẵn > localStorage (đề phòng người dùng nhập tay)
 let GS_URL = _EMBEDDED_GS_URL || localStorage.getItem('pb_gs_url6') || '';
@@ -1134,6 +1213,8 @@ async function loadAllFromGS() {
   if (gotMatches) syncDropdownsFromData(true);
   renderMatchGrid();
   renderResults();
+  syncBXHDropdowns();
+  renderBXH();
   setDot('ok');
 
   if (!gotMatches && !_resultsCleared) {
@@ -1277,6 +1358,15 @@ function clearMatches() {
   matchList=[]; saveMatchList(); renderMatchGrid(); toast('Đã xoá danh sách trận');
 }
 
+function clearEventLog() {
+  if (!evLog.length) { toast('⚠️ Nhật ký đã trống!'); return; }
+  if (!confirm(`Xoá toàn bộ ${evLog.length} sự kiện trong nhật ký?`)) return;
+  evLog = [];
+  try { localStorage.removeItem('pb_ev6'); } catch(e) {}
+  renderHistory();
+  toast('🗑 Đã xoá nhật ký sự kiện');
+}
+
 function openAddModal() {
   // Rebuild dropdown Nội dung từ matchList (giống Cài đặt trận đấu)
   const ndSel   = document.getElementById('am-nd');
@@ -1338,6 +1428,7 @@ function confirmAdd() {
 
   // Đồng bộ lại cài đặt chính
   syncDropdownsFromData(false);
+  syncBXHDropdowns();
   document.getElementById('sel-noidung').value = nd;
   document.getElementById('sel-bang').value    = bang;
   if (court) document.getElementById('inp-court').value   = court;
@@ -1472,17 +1563,32 @@ function renderMatchGrid() {
     const active = S.currentMatch?.key === m.key;
     const btn    = document.createElement('button');
     btn.className = 'match-btn' + (done ? ' done' : '') + (active ? ' active' : '');
-    // Chỉ hiện tỉ số từ sheet Matches (matchScoreA/B) — nguồn sự thật duy nhất
-    // Không dùng S.results local để tránh hiện điểm giải cũ khi đổi tên đội
-    const sTag = (m.matchScoreA !== null && m.matchScoreA !== undefined &&
-                  m.matchScoreB !== null && m.matchScoreB !== undefined)
-      ? `<span class="ms-tag">${m.matchScoreA}–${m.matchScoreB}</span>` : '';
+    const hasSc = (m.matchScoreA !== null && m.matchScoreA !== undefined &&
+                   m.matchScoreB !== null && m.matchScoreB !== undefined);
+    const scA = hasSc ? m.matchScoreA : '';
+    const scB = hasSc ? m.matchScoreB : '';
+    // Highlight đội thắng (điểm cao hơn)
+    const winA = hasSc && m.matchScoreA > m.matchScoreB;
+    const winB = hasSc && m.matchScoreB > m.matchScoreA;
+    const scStyleA = hasSc ? (winA ? 'background:#ef4444;color:#fff;' : 'background:#fee2e2;color:#b91c1c;') : '';
+    const scStyleB = hasSc ? (winB ? 'background:#ef4444;color:#fff;' : 'background:#fee2e2;color:#b91c1c;') : '';
+
     btn.innerHTML =
-      `<span class="mc">${m.code || '?'}</span>` +
-      `<span style="font-size:10px;color:var(--g400)">${m.noidung || ''} ${m.bang ? '· '+m.bang : ''}</span><br>` +
-      `<span style="font-size:11.5px">${sn(m.teamA)}</span>` +
-      `<span style="color:var(--g400);font-size:10px"> vs </span>` +
-      `<span style="font-size:11.5px">${sn(m.teamB)}</span>` + sTag;
+      // Header: mã trận + nội dung · bảng
+      `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">` +
+        `<span class="mc" style="margin-bottom:0">${m.code || '?'}</span>` +
+        `<span style="font-size:9.5px;color:var(--g400);text-align:right;line-height:1.2">${m.noidung||''}${m.bang?' · '+m.bang:''}</span>` +
+      `</div>` +
+      // Đội A — tên wrap, điểm cố định bên phải align top
+      `<div style="display:flex;align-items:flex-start;gap:4px;margin-bottom:4px">` +
+        `<span style="font-size:11px;font-weight:${winA?'700':'500'};color:${winA?'var(--green-dk)':'var(--g700)'};flex:1;min-width:0;line-height:1.35">${sn(m.teamA)}</span>` +
+        (hasSc ? `<span style="font-family:'Oswald',sans-serif;font-size:13px;font-weight:700;min-width:22px;text-align:center;border-radius:4px;padding:1px 5px;flex-shrink:0;line-height:1.35;${scStyleA}">${scA}</span>` : '') +
+      `</div>` +
+      // Đội B
+      `<div style="display:flex;align-items:flex-start;gap:4px">` +
+        `<span style="font-size:11px;font-weight:${winB?'700':'500'};color:${winB?'var(--green-dk)':'var(--g700)'};flex:1;min-width:0;line-height:1.35">${sn(m.teamB)}</span>` +
+        (hasSc ? `<span style="font-family:'Oswald',sans-serif;font-size:13px;font-weight:700;min-width:22px;text-align:center;border-radius:4px;padding:1px 5px;flex-shrink:0;line-height:1.35;${scStyleB}">${scB}</span>` : '') +
+      `</div>`;
     btn.onclick = () => loadMatch(idx);
     grid.appendChild(btn);
   });
@@ -1793,6 +1899,7 @@ function confirmSave() {
   // 4. Cập nhật UI ngay
   renderResults();
   renderMatchGrid();
+  renderBXH();
 
   // 4. Log + toast
   pushLog(`✅ LƯU: ${m.code} → ${scoreOrig_A}–${scoreOrig_B} (${sn(winner)} thắng)`, null);
@@ -2010,6 +2117,7 @@ async function pollMatches() {
 
     // syncDropdownsFromData đã gọi renderMatchGrid() bên trong
     syncDropdownsFromData(true);
+    syncBXHDropdowns();
 
     // Thông báo phù hợp
     if (added > 0) {
@@ -2264,6 +2372,113 @@ function openCamExternal() {
   if (currentCamUrl) window.open(currentCamUrl, '_blank');
 }
 
+// ══════════════════════════════════════════
+//  BẢNG XẾP HẠNG
+// ══════════════════════════════════════════
+function syncBXHDropdowns() {
+  const ndSel   = document.getElementById('bxh-nd');
+  const bangSel = document.getElementById('bxh-bang');
+  if (!ndSel || !bangSel) return;
+
+  const curND   = ndSel.value;
+  const curBang = bangSel.value;
+
+  const nds   = [...new Set(matchList.map(m => m.noidung).filter(Boolean))];
+  const bangs = [...new Set(matchList.map(m => m.bang).filter(Boolean))];
+
+  ndSel.innerHTML = '<option value="">-- Nội dung --</option>';
+  nds.forEach(nd => {
+    const opt = document.createElement('option');
+    opt.value = nd; opt.textContent = nd;
+    ndSel.appendChild(opt);
+  });
+  bangSel.innerHTML = '<option value="">-- Bảng --</option>';
+  bangs.forEach(b => {
+    const opt = document.createElement('option');
+    opt.value = b; opt.textContent = b;
+    bangSel.appendChild(opt);
+  });
+
+  if (curND   && nds.includes(curND))     ndSel.value   = curND;
+  if (curBang && bangs.includes(curBang)) bangSel.value = curBang;
+}
+
+function renderBXH() {
+  // Đọc giá trị filter TRƯỚC KHI thay đổi gì
+  const filterND   = ((document.getElementById('bxh-nd')?.value)   || '').trim();
+  const filterBang = ((document.getElementById('bxh-bang')?.value) || '').trim();
+
+  // Lọc kết quả theo nội dung + bảng
+  const results = Object.values(S.results).filter(r => {
+    if (filterND   && r.noidung !== filterND)   return false;
+    if (filterBang && r.bang    !== filterBang) return false;
+    return true;
+  });
+
+  const tbody  = document.getElementById('bxh-body');
+  const badge  = document.getElementById('bxh-badge');
+
+  if (!results.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="bxh-empty">Chưa có kết quả' +
+      (filterND || filterBang ? ' theo bộ lọc này' : '') + '</td></tr>';
+    if (badge) badge.textContent = '0';
+    return;
+  }
+
+  // Tính thống kê từng đội
+  const teams = {};
+  const ensureTeam = (name) => {
+    if (!teams[name]) teams[name] = { name, played:0, wins:0, losses:0, pf:0, pa:0 };
+  };
+
+  results.forEach(r => {
+    const tA = (r.teamA || '').trim();
+    const tB = (r.teamB || '').trim();
+    if (!tA || !tB) return;
+    ensureTeam(tA); ensureTeam(tB);
+
+    const sA = Number(r.scoreA) || 0;
+    const sB = Number(r.scoreB) || 0;
+
+    teams[tA].played++;
+    teams[tB].played++;
+    teams[tA].pf += sA; teams[tA].pa += sB;
+    teams[tB].pf += sB; teams[tB].pa += sA;
+
+    if (sA > sB)      { teams[tA].wins++; teams[tB].losses++; }
+    else if (sB > sA) { teams[tB].wins++; teams[tA].losses++; }
+    // Hoà: không cộng thắng/thua (hiếm gặp trong pickleball)
+  });
+
+  // Sắp xếp: điểm (1đ/win) → hiệu số → điểm ghi
+  const sorted = Object.values(teams).sort((a, b) => {
+    const ptA = a.wins, ptB = b.wins;
+    if (ptB !== ptA) return ptB - ptA;
+    const hsA = a.pf - a.pa, hsB = b.pf - b.pa;
+    if (hsB !== hsA) return hsB - hsA;
+    return b.pf - a.pf;
+  });
+
+  if (badge) badge.textContent = sorted.length;
+
+  tbody.innerHTML = sorted.map((t, i) => {
+    const rank = i + 1;
+    const hs   = t.pf - t.pa;
+    const hsClass = hs > 0 ? 'hso-pos' : hs < 0 ? 'hso-neg' : '';
+    const hsStr = hs > 0 ? '+' + hs : String(hs);
+    const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
+    return `<tr class="rank-${rank <= 3 ? rank : ''}">
+      <td><strong>${medal}</strong></td>
+      <td title="${t.name}">${t.name}</td>
+      <td>${t.played}</td>
+      <td style="color:var(--green-dk);font-weight:700">${t.wins}</td>
+      <td style="color:var(--red)">${t.losses}</td>
+      <td class="${hsClass}">${hsStr}</td>
+      <td class="pts">${t.wins}</td>
+    </tr>`;
+  }).join('');
+}
+
 // ── EXPORT CSV ──
 function exportCSV() {
   const arr=Object.values(S.results);
@@ -2309,6 +2524,8 @@ renderMatchGrid();
 render();
 renderHistory();
 renderResults();
+syncBXHDropdowns();
+renderBXH();
 renderCameraList();
 
 // Lắng nghe thay đổi filter
